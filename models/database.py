@@ -8,7 +8,7 @@ async def DBinit():
     # also specify the app name of "models"
     # which contain models from "app.models"
     await Tortoise.init(
-        db_url='mysql://root:mysql@Zhl1997@127.0.0.1:3306/subtest',
+        db_url='mysql://root:xxxx@127.0.0.1:3306/subtest',
         modules={'models': ['src.plugins.stockmanagerchatgpt.models.models']}
     )
     # Generate the schema
