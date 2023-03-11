@@ -18,5 +18,3 @@ def get_custom_classes(module):
 if __name__ == '__main__':
     fetcher_classes = get_custom_classes(fetcher)
     monitor_classes = get_custom_classes(monitor)
-    print(fetcher_classes)
-    print(monitor_classes)
