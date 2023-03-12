@@ -109,7 +109,6 @@ class StockCountFetcher:
                 setattr(stock_obj, key, value)
             await stock_obj.save()
 
-        print("数据更新完毕")
 
 
 class StockInfoSyncFetcher:

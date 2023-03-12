@@ -32,7 +32,7 @@ class StockMonitor:
 
         self._result_code = None
         self.stock_code = stock_code
-        self.path = Path(__file__).resolve().parent / f"data/{self.stock_code}"
+        self.path = Path(__file__).resolve().parent.parent / f"cache/{self.stock_code}"
         self.refresh_info()
 
     def _get_sh_stock(self):
@@ -288,12 +288,15 @@ class Strategy(StockPriceMonitor):
 
     # TODO
 
+
 # if __name__ == '__main__':
-#     # a = StockPriceMonitor('605178')
-#     # b = a.priceLimit()
-#     # pprint(a.detect_price_change())
-#     # print(a.response)
-#     # print(a.url)
-#     # print(a.resp_for_stock_name)
-#     a = StockCountFetcher()
-#     pprint(a.get_sh_stock_data()["Result"][0]['DisplayData']['resultData']['tplData']['result']['list'])
+    # a = StockPriceMonitor('605178')
+    # b = a.priceLimit()
+    # pprint(a.detect_price_change())
+    # print(a.response)
+    # print(a.url)
+    # print(a.resp_for_stock_name)
+    # a = StockCountFetcher()
+    # pprint(a.get_sh_stock_data()["Result"][0]['DisplayData']['resultData']['tplData']['result']['list'])
+    # a = StockMonitor('002439')
+    # print(a.refresh_info())
