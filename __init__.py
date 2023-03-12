@@ -49,17 +49,18 @@ async def process_stock_info(stock_num):
         message = None
     try:
         bot: Bot = get_bot()
-        group_id = 536763872
-        if bot is None:
-            print("连接tx中")
-        if message:
-            # 查询订阅了该股票的用户
-            sub_users = await StockSubInfo.filter(stock_num=status.stock_code).values('userid')
-            # 遍历订阅用户，推送异动信息
-            user_ids = [sub['userid'] for sub in sub_users]
-            at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
-            await bot.send_group_msg(group_id=group_id,
-                                     message=f"{at_users}您订阅的股票出现异动：\n{message}", )
+        groups_id = [536763872, 760478066]
+        for group_id in groups_id:
+            if bot is None:
+                print("连接tx中")
+            if message:
+                # 查询订阅了该股票的用户
+                sub_users = await StockSubInfo.filter(stock_num=status.stock_code).values('userid')
+                # 遍历订阅用户，推送异动信息
+                user_ids = [sub['userid'] for sub in sub_users]
+                at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
+                await bot.send_group_msg(group_id=group_id,
+                                         message=f"{at_users}您订阅的股票出现异动：\n{message}", )
     except ValueError:
         print("连接tx中1")
 
@@ -91,9 +92,13 @@ async def run_every_10_minutes():
 
 update_stock_list = on_command('/更新')
 
+groups_id = [536763872, 760478066]
+
 
 @update_stock_list.handle()
-async def _():
+async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+    if event.group_id not in groups_id:
+        return
     try:
 
         await DBinit()
@@ -116,6 +121,8 @@ subscribe = on_command('订阅', aliases={'取消'})
 @subscribe.handle()
 async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     # 数据库初始化
+    if event.group_id not in groups_id:
+        return
     await DBinit()
 
     message = str(event.get_message())
@@ -159,7 +166,9 @@ my_subscribe = on_command('我的订阅')
 
 @my_subscribe.handle()
 async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
-    # 数据库初始化
+    if event.group_id not in groups_id:
+        return
+        # 数据库初始化
     await DBinit()
 
     if event.message_type == "private":
