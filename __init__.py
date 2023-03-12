@@ -1,8 +1,9 @@
 import asyncio
+import re
 
 from typing import Union
 
-from nonebot import require
+from nonebot import require, on_fullmatch
 
 require("nonebot_plugin_apscheduler")
 from nonebot_plugin_apscheduler import scheduler
@@ -109,7 +110,7 @@ async def _():
 
 
 # 订阅股票
-subscribe = on_command('订阅')
+subscribe = on_command('订阅', aliases={'取消'})
 
 
 @subscribe.handle()
@@ -117,25 +118,38 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     # 数据库初始化
     await DBinit()
 
-    msg = event.get_message()
+    message = str(event.get_message())
     user_id = event.get_user_id()
+    stock_code = re.findall(r'\d+', message)[0]
+    print(stock_code)
+    if event.message_type == "private":
+        await subscribe.finish(message=stock_code)
+        return
     group_id = event.group_id
-    msg_type = event.message_type
-    stock_code = str(msg).strip('订阅')
     if not await StockList.filter(stock_code=stock_code).exists():
         msg = "数据库中未匹配到该股票代码。如果您确认有此股票代码，请联系管理员。"
         await subscribe.finish(message=msg, at_sender=True)
         return
+
     stock_name = await StockList.get(stock_code=stock_code)
     stock_name = stock_name.name
-    # 判断当前用户在该群是否已经订阅该股票，是，则不予订阅，不是则订阅
+
+    # 判断当前用户在该群是否已经订阅该股票，是，则取消订阅，否则订阅
     exists = await StockSubInfo.exists(userid=user_id, stock_num=stock_code, group_id=group_id)
-    if exists:
-        await subscribe.finish(f"已经订阅过了{stock_code}{stock_name}", at_sender=True)
-    else:
-        await StockSubInfo(userid=user_id, stock_num=stock_code, group_id=group_id).save()
-        msg = f"成功订阅{stock_code}{stock_name}"
-        await subscribe.finish(message=msg, at_sender=True)
+    if message.startswith("订阅"):
+        if exists:
+            await subscribe.finish(f"已经订阅过了{stock_code}{stock_name}", at_sender=True)
+        else:
+            await StockSubInfo(userid=user_id, stock_num=stock_code, group_id=group_id).save()
+            msg = f"成功订阅{stock_code}{stock_name}"
+            await subscribe.finish(message=msg, at_sender=True)
+    elif message.startswith("取消"):
+        if exists:
+            await StockSubInfo.filter(userid=user_id, stock_num=stock_code, group_id=group_id).delete()
+            msg = f"已经成功取消订阅{stock_code}{stock_name}"
+            await subscribe.finish(message=msg, at_sender=True)
+        else:
+            await subscribe.finish(f"您并未订阅{stock_code}{stock_name}，无法取消", at_sender=True)
 
     # TODO 检查code是否合法
 
