@@ -32,7 +32,6 @@ async def process_stock_info(stock_num):
     status = StockPriceMonitor(stock_code=stock_num)
 
     if not status.is_trading:
-        print("非交易时段")
         return
 
     delta_rate_task = asyncio.create_task(status.price_fluctuation())
@@ -74,7 +73,6 @@ async def process_stock_infos():
 @scheduler.scheduled_job("interval", seconds=15, id="1", args=[1], kwargs={"arg2": 2})
 async def run_every_15_seconds(arg1, arg2):
     if Judgment().trading_session_a_day() not in [True, "竞价时间"]:
-        print("已经是非交易时间了")
         return
     await process_stock_infos()
 
@@ -82,7 +80,6 @@ async def run_every_15_seconds(arg1, arg2):
 @scheduler.scheduled_job("interval", seconds=10, id="2")
 async def run_every_10_minutes():
     if Judgment().trading_session_a_day() not in [True, "竞价时间"]:
-        print("非交易时间")
         return
     await DBinit()
     stock_count_fetcher = StockCountFetcher()
@@ -91,13 +88,24 @@ async def run_every_10_minutes():
 
 # scheduler.add_job(run_every_day_from_program_start, "interval", days=1, id="xxx")
 
-update_stock_list = on_command('更新')
+update_stock_list = on_command('/更新')
 
 
 @update_stock_list.handle()
 async def _():
-    await DBinit()
-    await StockInfoSyncFetcher.fetch_and_save()
+    try:
+
+        await DBinit()
+        new_stocks = await StockInfoSyncFetcher.fetch_and_save()
+        if len(new_stocks) > 0:
+            # 构造新添加股票的消息
+            new_stocks_msg = "新增股票：\n" + "\n".join(new_stocks)
+            msg = f"更新股票信息成功！{new_stocks_msg}"
+        else:
+            msg = "更新股票信息成功,本次更新没有新增股票！"
+    except Exception as e:
+        msg = f"更新股票信息失败，错误信息：{str(e)}"
+    await update_stock_list.finish(message=msg)
 
 
 # 订阅股票
