@@ -121,7 +121,6 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
     message = str(event.get_message())
     user_id = event.get_user_id()
     stock_code = re.findall(r'\d+', message)[0]
-    print(stock_code)
     if event.message_type == "private":
         await subscribe.finish(message=stock_code)
         return
@@ -152,6 +151,42 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
             await subscribe.finish(f"您并未订阅{stock_code}{stock_name}，无法取消", at_sender=True)
 
     # TODO 检查code是否合法
+
+
+# 我的订阅
+my_subscribe = on_command('我的订阅')
+
+
+@my_subscribe.handle()
+async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
+    # 数据库初始化
+    await DBinit()
+
+    if event.message_type == "private":
+        userid = event.get_user_id()
+        subscribe_list = await StockSubInfo.filter(userid=userid).all()
+        if len(subscribe_list) == 0:
+            await my_subscribe.finish(message="您当前没有订阅任何股票")
+        else:
+            msg = "您当前订阅的股票有：\n"
+            for stock in subscribe_list:
+                stock_name = await StockList.get(stock_code=stock.stock_num)
+                stock_name = stock_name.name
+                msg += f"{stock.stock_num}{stock_name}\n"
+            await my_subscribe.finish(message=msg, at_sender=True)
+    else:
+        userid = event.get_user_id()
+        group_id = event.group_id
+        subscribe_list = await StockSubInfo.filter(userid=userid, group_id=group_id).all()
+        if len(subscribe_list) == 0:
+            await my_subscribe.finish(message="您当前在本群没有订阅任何股票", at_sender=True)
+        else:
+            msg = "您当前在本群订阅的股票有：\n"
+            for stock in subscribe_list:
+                stock_name = await StockList.get(stock_code=stock.stock_num)
+                stock_name = stock_name.name
+                msg += f"{stock.stock_num}{stock_name}\n"
+            await my_subscribe.finish(message=msg, at_sender=True)
 
 # MONITORED_CLASSES = [(MyClass1, 1), (MyClass2, 2), (MyClass3, 3)]
 #
