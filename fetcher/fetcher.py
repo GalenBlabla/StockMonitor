@@ -243,6 +243,7 @@ class StockPriceMonitor(StockMonitor):
         # 计算相对涨跌幅
         if len(price_list) < n:
             return "no change"
+
         else:
             avg_price = sum(price_list[:-1]) / (n - 1)
             relative_change = (price_list[-1] - avg_price) / avg_price
@@ -262,7 +263,7 @@ class StockPriceMonitor(StockMonitor):
 
         prices = [
             float(item['value'].strip('%'))
-            for file in files[:3:2]
+            for file in files[:4:3]
             for item in json.load(open(file.path, encoding='utf8'))['Result']['pankouinfos']['list']
             if item['ename'] == 'priceLimit'
         ]
@@ -288,8 +289,7 @@ class Strategy(StockPriceMonitor):
 
     # TODO
 
-
-# if __name__ == '__main__':
+    # if __name__ == '__main__':
     # a = StockPriceMonitor('605178')
     # b = a.priceLimit()
     # pprint(a.detect_price_change())
@@ -298,5 +298,6 @@ class Strategy(StockPriceMonitor):
     # print(a.resp_for_stock_name)
     # a = StockCountFetcher()
     # pprint(a.get_sh_stock_data()["Result"][0]['DisplayData']['resultData']['tplData']['result']['list'])
-    # a = StockMonitor('002439')
-    # print(a.refresh_info())
+    # a = StockPriceMonitor('301137')
+    # print(a.detect_price_change())
+    # print(a.price_fluctuation())

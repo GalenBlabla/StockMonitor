@@ -56,6 +56,9 @@ async def process_stock_info(stock_num):
             if message:
                 # 查询订阅了该股票的用户
                 sub_users = await StockSubInfo.filter(stock_num=status.stock_code).values('userid')
+                # 如果订阅用户为空，则跳过该群的消息发送
+                if not sub_users:
+                    continue
                 # 遍历订阅用户，推送异动信息
                 user_ids = [sub['userid'] for sub in sub_users]
                 at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
