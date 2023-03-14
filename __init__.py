@@ -49,7 +49,7 @@ async def detect_slow_fluctuation(status):
     price_limit = await status.price_limit()
     stock_name = await StockList.get(stock_code=status.stock_code)
     stock_name = stock_name.name
-    if slow_rise >= 1:
+    if slow_rise >= -1:
         message = f"{status.stock_code}{stock_name}：持续走高 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
         return message
     elif slow_rise <= -1:
@@ -61,7 +61,7 @@ async def detect_slow_fluctuation(status):
 
 async def process_stock_info(stock_num):
     status = StockPriceMonitor(stock_code=stock_num)
-
+    # 如需DEBUG 请注释if
     if not status.is_trading:
         return
 
@@ -95,7 +95,7 @@ async def process_stock_info(stock_num):
                 user_ids = [sub['userid'] for sub in sub_users]
                 at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
                 await bot.send_group_msg(group_id=group_id,
-                                         message=f"{at_users}您订阅的股票出现异动：\n{fast_fluctuation_message}", )
+                                         message=f"{at_users}您订阅的股票出现异动：\n{slow_fluctuation_message}", )
     except ValueError:
         print("连接tx中1")
 
@@ -109,6 +109,7 @@ async def process_stock_infos():
 
 @scheduler.scheduled_job("interval", seconds=15, id="1", args=[1], kwargs={"arg2": 2})
 async def run_every_15_seconds(arg1, arg2):
+    # 如需DEBUG 请注释if
     if Judgment().trading_session_a_day() not in [True, "竞价时间"]:
         return
     await process_stock_infos()
