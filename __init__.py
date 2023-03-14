@@ -25,6 +25,10 @@ from .models.models import StockList, StockSubInfo, GroupList
 from .models.database import DBinit
 from .utils.time_judgment import Judgment
 
+from getBasicInfo import GET_GP_INFO
+from nonebot.params import CommandArg
+from nonebot.adapters import Message
+
 global_config = get_driver().config
 config = Config.parse_obj(global_config)
 
@@ -232,6 +236,21 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
                 msg += f"{stock.stock_num}{stock_name}\n"
             await my_subscribe.finish(message=msg, at_sender=True)
 
+
+# stack=on_command("",permission=SUPERUSER)
+stack=on_command("", priority=60)
+@stack.handle()
+async def st(bot:Bot,ev:GroupMessageEvent,args: Message = CommandArg()):
+    st_group = get_driver().config.group_list
+    gid = str(ev.group_id)
+    if(gid in st_group):
+        command = args.extract_plain_text()
+        if(str.isdigit(command)):
+            MSG = GET_GP_INFO.get_info(command)
+            if(MSG != None):
+                await bot.send(ev,MSG)
+    else:
+        print("群号不允许")
 # MONITORED_CLASSES = [(MyClass1, 1), (MyClass2, 2), (MyClass3, 3)]
 #
 #
