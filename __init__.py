@@ -29,31 +29,52 @@ global_config = get_driver().config
 config = Config.parse_obj(global_config)
 
 
+async def detect_fast_fluctuation(status):
+    delta_rate = await status.price_fluctuation()
+    price_limit = await status.price_limit()
+    stock_name = await StockList.get(stock_code=status.stock_code)
+    stock_name = stock_name.name
+    if delta_rate >= 1:
+        message = f"{status.stock_code}{stock_name}：急速拉升 {delta_rate}%。当前涨跌幅{price_limit['value']}。"
+        return message
+    elif delta_rate <= -1:
+        message = f"{status.stock_code}猛烈打压 {delta_rate}%。当前涨跌幅{price_limit['value']}。"
+        return message
+    else:
+        return None
+
+
+async def detect_slow_fluctuation(status):
+    slow_rise = await status.slow_rise()
+    price_limit = await status.price_limit()
+    stock_name = await StockList.get(stock_code=status.stock_code)
+    stock_name = stock_name.name
+    if slow_rise >= 1:
+        message = f"{status.stock_code}{stock_name}：缓慢拉升 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
+        return message
+    elif slow_rise <= -1:
+        message = f"{status.stock_code}缓慢打压 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
+        return message
+    else:
+        return None
+
+
 async def process_stock_info(stock_num):
     status = StockPriceMonitor(stock_code=stock_num)
 
     if not status.is_trading:
         return
 
-    delta_rate_task = asyncio.create_task(status.price_fluctuation())
-    price_limit_task = asyncio.create_task(status.price_limit())
-    delta_rate, price_limit = await asyncio.gather(delta_rate_task, price_limit_task)
-    stock_name = await StockList.get(stock_code=stock_num)
-    stock_name = stock_name.name
-    # 拉升或者打压检测
-    if delta_rate >= 1:
-        message = f"{status.stock_code}{stock_name}：急速拉升 {delta_rate}%。当前涨跌幅{price_limit['value']}。"
-    elif delta_rate <= -1:
-        message = f"{status.stock_code}猛烈打压 {delta_rate}%。当前涨跌幅{price_limit['value']}。"
-    else:
-        message = None
+    fast_fluctuation_message = await detect_fast_fluctuation(status)
+    slow_fluctuation_message = await detect_slow_fluctuation(status)
+
     try:
         bot: Bot = get_bot()
         groups_id = [536763872, 760478066]
         for group_id in groups_id:
             if bot is None:
                 print("连接tx中")
-            if message:
+            if fast_fluctuation_message:
                 # 查询订阅了该股票的用户
                 sub_users = await StockSubInfo.filter(stock_num=status.stock_code, group_id=group_id).values('userid')
                 # 如果订阅用户为空，则跳过该群的消息发送
@@ -63,7 +84,18 @@ async def process_stock_info(stock_num):
                 user_ids = [sub['userid'] for sub in sub_users]
                 at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
                 await bot.send_group_msg(group_id=group_id,
-                                         message=f"{at_users}您订阅的股票出现异动：\n{message}", )
+                                         message=f"{at_users}您订阅的股票出现异动：\n{fast_fluctuation_message}", )
+            elif slow_fluctuation_message:
+                # 查询订阅了该股票的用户
+                sub_users = await StockSubInfo.filter(stock_num=status.stock_code, group_id=group_id).values('userid')
+                # 如果订阅用户为空，则跳过该群的消息发送
+                if not sub_users:
+                    continue
+                # 遍历订阅用户，推送异动信息
+                user_ids = [sub['userid'] for sub in sub_users]
+                at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
+                await bot.send_group_msg(group_id=group_id,
+                                         message=f"{at_users}您订阅的股票出现异动：\n{fast_fluctuation_message}", )
     except ValueError:
         print("连接tx中1")
 

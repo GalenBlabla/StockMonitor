@@ -276,6 +276,15 @@ class StockPriceMonitor(StockMonitor):
         # # print(f"当前价格{prices[0]},一分钟前的价格{prices[1]}")
         # return round(prices[0] - prices[1], 2)
 
+    async def slow_rise(self) -> float:
+        """
+        股票缓慢拉升监控（一分钟）
+        """
+        price_info = self.price_info
+        price_now = float(price_info[-1]["ratio"].strip("%"))
+        price_old = float(price_info[-5]["ratio"].strip("%"))
+        return round(price_now - price_old, 2)
+
     async def price_limit(self) -> dict:
         """
         涨跌幅，以及涨跌状态
