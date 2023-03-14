@@ -50,10 +50,10 @@ async def detect_slow_fluctuation(status):
     stock_name = await StockList.get(stock_code=status.stock_code)
     stock_name = stock_name.name
     if slow_rise >= 1:
-        message = f"{status.stock_code}{stock_name}：缓慢拉升 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
+        message = f"{status.stock_code}{stock_name}：持续走高 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
         return message
     elif slow_rise <= -1:
-        message = f"{status.stock_code}缓慢打压 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
+        message = f"{status.stock_code}持续走低 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
         return message
     else:
         return None
