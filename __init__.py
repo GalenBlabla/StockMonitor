@@ -55,7 +55,7 @@ async def process_stock_info(stock_num):
                 print("连接tx中")
             if message:
                 # 查询订阅了该股票的用户
-                sub_users = await StockSubInfo.filter(stock_num=status.stock_code).values('userid')
+                sub_users = await StockSubInfo.filter(stock_num=status.stock_code, group_id=group_id).values('userid')
                 # 如果订阅用户为空，则跳过该群的消息发送
                 if not sub_users:
                     continue
@@ -82,7 +82,7 @@ async def run_every_15_seconds(arg1, arg2):
     await process_stock_infos()
 
 
-@scheduler.scheduled_job("interval", seconds=10, id="2")
+@scheduler.scheduled_job("interval", minutes=10, id="2")
 async def run_every_10_minutes():
     if Judgment().trading_session_a_day() not in [True, "竞价时间"]:
         return
