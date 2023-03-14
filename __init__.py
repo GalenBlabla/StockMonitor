@@ -185,7 +185,7 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
                 stock_name = await StockList.get(stock_code=stock.stock_num)
                 stock_name = stock_name.name
                 msg += f"{stock.stock_num}{stock_name}\n"
-            await my_subscribe.finish(message=msg, at_sender=True)
+            await my_subscribe.finish(message=msg)
     else:
         userid = event.get_user_id()
         group_id = event.group_id

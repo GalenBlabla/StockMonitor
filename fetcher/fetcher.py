@@ -30,7 +30,7 @@ class StockMonitor:
 
     def __init__(self, stock_code):
 
-        self._result_code = None
+        self.__result_code = None
         self.stock_code = stock_code
         self.path = Path(__file__).resolve().parent.parent / f"cache/{self.stock_code}"
         self.refresh_info()
@@ -55,7 +55,7 @@ class StockMonitor:
         response.raise_for_status()
         return response.json()
 
-    def _get_response(self):
+    def __get_response(self):
         """
         发送网络请求并返回响应数据
         """
@@ -78,26 +78,26 @@ class StockMonitor:
         刷新股票信息
         """
         try:
-            self.response = self._get_response()
+            self.response = self.__get_response()
         except Exception as e:
             print(f"API异常返回：{e}")
             return
 
         try:
-            self._result_code = self.response['ResultCode']
-            self._update_info = self.response['Result']['update']
-            self._provider_info = self.response['Result']['provider']
-            self._origin_pankou = self.response["Result"]['pankouinfos']['origin_pankou']
-            self._pankou_info = self.response["Result"]['pankouinfos']['list']
-            self._new_mark_data = self.response["Result"]['newMarketData']
-            self._member_info = self.response["Result"]['member_info']
-            self._detail_info = self.response["Result"]['detailinfos']
-            self._cur_info = self.response["Result"]['cur']
-            self._buy_info = self.response["Result"]['buyinfos']
-            self._basic_infos = self.response["Result"]['basicinfos']
-            self._ask_infos = self.response["Result"]['askinfos']
-            self._price_info = self.response['Result']['priceinfo']
-            self._mark_status = self.response['Result']['update']['stockStatus']
+            self.__result_code = self.response['ResultCode']
+            self.__update_info = self.response['Result']['update']
+            self.__provider_info = self.response['Result']['provider']
+            self.__origin_pankou = self.response["Result"]['pankouinfos']['origin_pankou']
+            self.__pankou_info = self.response["Result"]['pankouinfos']['list']
+            self.__new_mark_data = self.response["Result"]['newMarketData']
+            self.__member_info = self.response["Result"]['member_info']
+            self.__detail_info = self.response["Result"]['detailinfos']
+            self.__cur_info = self.response["Result"]['cur']
+            self.__buy_info = self.response["Result"]['buyinfos']
+            self.__basic_infos = self.response["Result"]['basicinfos']
+            self.__ask_infos = self.response["Result"]['askinfos']
+            self.__price_info = self.response['Result']['priceinfo']
+            self.__mark_status = self.response['Result']['update']['stockStatus']
 
         except Exception as e:
             print(f"解析API接口时发生异常：{e}")
@@ -123,98 +123,98 @@ class StockMonitor:
         """
         市场是否属于交易中
         """
-        return self._mark_status
+        return self.__mark_status
 
     @property
     def update_info(self):
         """
         返回一些时间戳，交易信息啊什么的
         """
-        return self._update_info
+        return self.__update_info
 
     @property
     def provider_info(self):
         """
         返回信息提供商的名字
         """
-        return self._provider_info
+        return self.__provider_info
 
     @property
     def result_code(self):
         """
         成功请求的代码 0
         """
-        return self._result_code
+        return self.__result_code
 
     @property
     def origin_pankou(self):
         """
         返回原始盘口信息
         """
-        return self._origin_pankou
+        return self.__origin_pankou
 
     @property
     def pankou_info(self):
         """
         返回盘口信息
         """
-        return self._pankou_info
+        return self.__pankou_info
 
     @property
     def new_mark_data(self):
         """
         返回新市场数据
         """
-        return self._new_mark_data
+        return self.__new_mark_data
 
     @property
     def member_info(self):
         """
         俺也不太懂这是什么
         """
-        return self._member_info
+        return self.__member_info
 
     @property
     def detail_info(self):
         """
         这个应该是成交数据。
         """
-        return self._detail_info
+        return self.__detail_info
 
     @property
     def cur_info(self):
         """
         看不懂是什么，但是包含了一些实时交易盘面数据
         """
-        return self._cur_info
+        return self.__cur_info
 
     @property
     def buy_info(self):
         """
         买盘
         """
-        return self._buy_info
+        return self.__buy_info
 
     @property
     def basic_infos(self):
         """
         返回股票基本信息
         """
-        return self._basic_infos
+        return self.__basic_infos
 
     @property
     def ask_infos(self):
         """
         返回股票卖出信息
         """
-        return self._ask_infos
+        return self.__ask_infos
 
     @property
     def price_info(self):
         """
         返回股票价格信息
         """
-        return self._price_info
+        return self.__price_info
 
 
 class StockPriceMonitor(StockMonitor):
@@ -224,7 +224,7 @@ class StockPriceMonitor(StockMonitor):
 
     def __init__(self, stock_code):
         super().__init__(stock_code)
-        self.is_trading = self._mark_status == "交易中"
+        self.is_trading = self.mark_status == "交易中"
 
     def detect_price_change(self, n: int = 6):
         """
@@ -237,7 +237,7 @@ class StockPriceMonitor(StockMonitor):
             str: 返回值为"up"表示股票价格异动为拉升，"down"表示股票价格异动为打压，"no change"表示未发生异动
         """
         # 获取时间区间内的价格列表
-        data = self._price_info[-n:]
+        data = self.price_info[-n:]
         price_list = [float(item['price']) for item in data]
 
         # 计算相对涨跌幅
@@ -256,18 +256,25 @@ class StockPriceMonitor(StockMonitor):
 
     async def price_fluctuation(self) -> float:
         """
-        股票异动拉升，猛烈打压监控
+        股票异动拉升，猛烈打压监控（一分钟
         """
-        with os.scandir(self.path) as entries:
-            files = sorted(entries, key=lambda entry: entry.name[:-5], reverse=True)
-
-        prices = [
-            float(item['value'].strip('%'))
-            for file in files[:4:3]
-            for item in json.load(open(file.path, encoding='utf8'))['Result']['pankouinfos']['list']
-            if item['ename'] == 'priceLimit'
-        ]
-        return round(prices[0] - prices[1], 2)
+        price_info = self.price_info
+        price_now = float(price_info[-1]["ratio"].strip("%"))
+        price_old = float(price_info[-2]["ratio"].strip("%"))
+        return round(price_now - price_old, 2)
+        # 根据文件做比对可以得到每15秒的数据
+        # with os.scandir(self.path) as entries:
+        #     files = sorted(entries, key=lambda entry: entry.name[:-5], reverse=True)
+        #
+        # prices = [
+        #     float(item['value'].strip('%'))
+        #     for file in files[:4:3]
+        #     for item in json.load(open(file.path, encoding='utf8'))['Result']['pankouinfos']['list']
+        #     if item['ename'] == 'priceLimit'
+        # ]
+        # print(prices)
+        # # print(f"当前价格{prices[0]},一分钟前的价格{prices[1]}")
+        # return round(prices[0] - prices[1], 2)
 
     async def price_limit(self) -> dict:
         """
@@ -298,6 +305,6 @@ class Strategy(StockPriceMonitor):
     # print(a.resp_for_stock_name)
     # a = StockCountFetcher()
     # pprint(a.get_sh_stock_data()["Result"][0]['DisplayData']['resultData']['tplData']['result']['list'])
-    # a = StockPriceMonitor('301137')
+    # a = StockPriceMonitor('003029')
     # print(a.detect_price_change())
     # print(a.price_fluctuation())
