@@ -19,8 +19,8 @@ from nonebot.adapters.onebot.v11 import (
 from nonebot import get_driver
 
 from .config import Config
-from .fetcher.fetcher import StockPriceMonitor
-from .fetcher.monitor import StockCountFetcher, StockInfoSyncFetcher
+from .fetcher.stock_info_fetcher import StockPriceMonitor
+from .fetcher.stock_info_monitor import StockCountFetcher, StockInfoSyncFetcher
 from .models.models import StockList, StockSubInfo, GroupList
 from .models.database import DBinit
 from .utils.time_judgment import Judgment
@@ -49,7 +49,7 @@ async def detect_slow_fluctuation(status):
     price_limit = await status.price_limit()
     stock_name = await StockList.get(stock_code=status.stock_code)
     stock_name = stock_name.name
-    if slow_rise >= -1:
+    if slow_rise >= 1:
         message = f"{status.stock_code}{stock_name}：持续走高 {slow_rise}%。当前涨跌幅{price_limit['value']}。"
         return message
     elif slow_rise <= -1:
@@ -64,13 +64,14 @@ async def process_stock_info(stock_num):
     # 如需DEBUG 请注释if
     if not status.is_trading:
         return
-
+    # 快速拉升
     fast_fluctuation_message = await detect_fast_fluctuation(status)
+    # 缓慢拉升
     slow_fluctuation_message = await detect_slow_fluctuation(status)
 
     try:
         bot: Bot = get_bot()
-        groups_id = [536763872, 760478066]
+        groups_id = [536763872, 760478066]  # 760478066
         for group_id in groups_id:
             if bot is None:
                 print("连接tx中")
@@ -110,7 +111,9 @@ async def process_stock_infos():
 @scheduler.scheduled_job("interval", seconds=15, id="1", args=[1], kwargs={"arg2": 2})
 async def run_every_15_seconds(arg1, arg2):
     # 如需DEBUG 请注释if
-    if Judgment().trading_session_a_day() not in [True, "竞价时间"]:
+    judgment = Judgment()
+    if judgment.trading_session_a_day() not in [True, "竞价时间"]:
+        print(f"不过现在已经不是交易时间了。{judgment.now_time}")
         return
     await process_stock_infos()
 
