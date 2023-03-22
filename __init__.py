@@ -21,6 +21,7 @@ from nonebot import get_driver
 from .config import Config
 from .fetcher.stock_info_fetcher import StockPriceMonitor
 from .fetcher.stock_info_monitor import StockCountFetcher, StockInfoSyncFetcher
+from .fetcher.stock_news_fetcher import News
 from .models.models import StockList, StockSubInfo, GroupList
 from .models.database import DBinit
 from .utils.time_judgment import Judgment
@@ -82,10 +83,12 @@ async def process_stock_info(stock_num):
                 if not sub_users:
                     continue
                 # 遍历订阅用户，推送异动信息
-                user_ids = [sub['userid'] for sub in sub_users]
-                at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
-                await bot.send_group_msg(group_id=group_id,
-                                         message=f"{at_users}您订阅的股票出现异动：\n{fast_fluctuation_message}", )
+                [
+                    await bot.send_private_msg(user_id=sub['userid'],
+                                               message=f"您订阅的股票出现异动：\n{fast_fluctuation_message}")
+                    for sub in sub_users
+                ]
+
             elif slow_fluctuation_message:
                 # 查询订阅了该股票的用户
                 sub_users = await StockSubInfo.filter(stock_num=status.stock_code, group_id=group_id).values('userid')
@@ -93,10 +96,11 @@ async def process_stock_info(stock_num):
                 if not sub_users:
                     continue
                 # 遍历订阅用户，推送异动信息
-                user_ids = [sub['userid'] for sub in sub_users]
-                at_users = ''.join([f"[CQ:at,qq={user_id}]" for user_id in user_ids])
-                await bot.send_group_msg(group_id=group_id,
-                                         message=f"{at_users}您订阅的股票出现异动：\n{slow_fluctuation_message}", )
+                [
+                    await bot.send_private_msg(user_id=sub['userid'],
+                                               message=f"您订阅的股票出现异动：\n{slow_fluctuation_message}")
+                    for sub in sub_users
+                ]
     except ValueError:
         print("连接tx中1")
 
@@ -125,6 +129,15 @@ async def run_every_10_minutes():
     await DBinit()
     stock_count_fetcher = StockCountFetcher()
     await stock_count_fetcher.update_stocks()
+
+
+# 新闻定时发送
+@scheduler.scheduled_job("interval", minutes=10, id="news_monitor")
+async def run_every_10_minutes():
+    news = News()
+    latest_news = news.get_latest_news()
+
+    print(latest_news)
 
 
 # scheduler.add_job(run_every_day_from_program_start, "interval", days=1, id="xxx")
@@ -196,8 +209,6 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
         else:
             await subscribe.finish(f"您并未订阅{stock_code}{stock_name}，无法取消", at_sender=True)
 
-    # TODO 检查code是否合法
-
 
 # 我的订阅
 my_subscribe = on_command('我的订阅')
@@ -235,6 +246,8 @@ async def _(event: Union[GroupMessageEvent, PrivateMessageEvent]):
                 stock_name = stock_name.name
                 msg += f"{stock.stock_num}{stock_name}\n"
             await my_subscribe.finish(message=msg, at_sender=True)
+
+# 新闻监控
 
 # MONITORED_CLASSES = [(MyClass1, 1), (MyClass2, 2), (MyClass3, 3)]
 #
