@@ -2,7 +2,8 @@ import re
 
 import urllib.parse
 from pprint import pprint
-
+import json
+import jsonpath
 import requests
 
 
@@ -49,28 +50,30 @@ class News:
         return self.__news_list[0]
 
 
-class NewsClassify:
-    def tag_judge(self, latest_news):
-        latest_news_tag = latest_news['tag']
-        important = latest_news['important']
-        message = ''
-        if important == '1':
-            if "A股" in latest_news_tag:
-                message = f"标题：{latest_news['title']}\n标签：{latest_news_tag}\n类型：{latest_news['evaluate']}\n链接：{latest_news['third_url']}"
-            elif "美股" in latest_news_tag:
-                self.__stock_US_important_news = self.__news_list[0]
-            elif "港股" in latest_news_tag:
-                self.__stock_HK_important_news = self.__news_list[0]
-        else:
-            if "A股" in latest_news_tag and "快讯" in latest_news_tag:
-                self.__stock_CN_flash_news = self.__news_list[0]
-            elif "A股" in latest_news_tag and "异动" in latest_news_tag:
-                self.__stock_CN_volatility_news = self.__news_list[0]
-            elif "美股" in latest_news_tag and "快讯" in latest_news_tag:
-                self.__stock_US_flash_news = self.__news_list[0]
-            elif "美股" in latest_news_tag and "异动" in latest_news_tag:
-                self.__stock_US_volatility_news = self.__news_list[0]
-            elif "港股" in latest_news_tag and "异动" in latest_news_tag:
-                self.__stock_HK_volatility_news = self.__news_list[0]
-            elif "港股" in latest_news_tag and "快讯" in latest_news_tag:
-                self.__stock_HK_flash_news = self.__news_list[0]
+class NewsClassify(News):
+    def __init__(self):
+        super(NewsClassify, self).__init__()
+
+    def message(self):
+        news_latest = self.get_latest_news()
+
+        news_json = news_latest.get_latest_news()
+        news_json = json.dumps(news_json, ensure_ascii=False)
+
+        data = json.loads(news_json)
+
+        return str(
+            jsonpath.jsonpath(data, '$.content.items[0].data')
+            +
+            jsonpath.jsonpath(data, '$.tag')
+            +
+            jsonpath.jsonpath(data, '$.evaluate') + jsonpath.jsonpath(data, '$.entity[0].code')
+            +
+            jsonpath.jsonpath(data, '$.entity[0].name')
+        )
+
+
+if __name__ == '__main__':
+    news = NewsClassify()
+    news_latest = news.message()
+    print(news_latest)
