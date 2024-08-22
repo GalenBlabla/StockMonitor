@@ -58,9 +58,8 @@ StockMonitor 系统由多个微服务构成，每个微服务通过 RabbitMQ 消
 git clone https://github.com/GalenBlabla/StockMonitor.git
 cd StockMonitor
 ```
-### 2.进入 docker 目录并启动服务
+### 2. 直接docker一把梭
 ```bash
-cd docker
 docker-compose up -d --build
 ```
 ### 3. 访问服务
