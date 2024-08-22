@@ -55,5 +55,34 @@ StockMonitor 系统由多个微服务构成，每个微服务通过 RabbitMQ 消
 
 ### 1. 克隆仓库
 ```bash
-git clone https://github.com/yourusername/StockMonitor.git
+git clone https://github.com/GalenBlabla/StockMonitor.git
 cd StockMonitor
+```
+### 2.进入 docker 目录并启动服务
+```bash
+cd docker
+docker-compose up -d --build
+```
+### 4. 访问服务
+服务启动后，可以通过以下方式访问各微服务：
+
+- 用户管理服务：http://localhost:8000
+- 股票数据获取服务：内部通信，无需直接访问
+- 股票数据处理服务：内部通信，无需直接访问
+- 通知服务：内部通信，无需直接访问
+- 管理监控服务：待实现
+
+### 目录结构
+- `user_management`: 用户管理服务
+- `stock_fetcher`: 股票数据获取服务
+- `stock_processor`: 股票数据处理服务
+- `notification`: 通知服务
+- `admin_monitoring`: 管理监控服务
+- `docker`: Docker 和 Docker Compose 配置文件
+- `logs`: 日志目录
+
+### 贡献指南
+欢迎贡献代码！请确保所有更改都符合项目的代码风格，并且在提交之前通过了所有测试。
+
+### 许可证
+本项目遵循 MIT 许可证。详情请参阅 [LICENSE](LICENSE) 文件。
