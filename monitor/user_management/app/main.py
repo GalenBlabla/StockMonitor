@@ -9,6 +9,7 @@ from app.config import settings
 from app.models.sub_models import Subscription  # 确保导入模型
 
 # 设置日志级别
+logging.getLogger('pika').setLevel(logging.WARNING)
 logging.basicConfig(level=getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
 logger = logging.getLogger(__name__)
 
@@ -77,8 +78,8 @@ def start_rabbitmq_listener():
     connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
     channel = connection.channel()
 
-    channel.queue_declare(queue='notifications')
-    channel.basic_consume(queue='notifications', on_message_callback=callback, auto_ack=True)
+    channel.queue_declare(queue='noti_data')
+    channel.basic_consume(queue='noti_data', on_message_callback=callback, auto_ack=True)
 
     logger.info("Connected to RabbitMQ, waiting for notifications...")
     

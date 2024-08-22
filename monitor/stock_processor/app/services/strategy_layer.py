@@ -4,14 +4,13 @@ from typing import Dict, Any
 logger = logging.getLogger(__name__)
 
 def analyze_stock_data(stock_code: str, stock_data: Dict[str, Any]) -> Dict[str, Any]:
-    """分析股票数据的逻辑并作出策略决策"""
-    # 示例策略：检查股票是否在交易中，以及价格是否异动
+    """分析股票数据并作出策略决策"""
     if stock_data.get('market_status') == "交易中":
         fluctuation = detect_price_fluctuation(stock_data)
         if fluctuation and abs(fluctuation) > 1.0:  # 价格波动大于1%
             logger.info(f"Significant price change detected for {stock_code}: {fluctuation}%")
-            return {"stock_code": stock_code, "alert": "price_change", "fluctuation": fluctuation}
-    return {"stock_code": stock_code, "alert": "no_change"}
+            return fluctuation
+    return "0"
 
 def detect_price_fluctuation(stock_data: Dict[str, Any]) -> float:
     """检测价格波动"""

@@ -1,5 +1,6 @@
 import json
 import logging
+from pathlib import Path
 from typing import Dict, Any
 import pika
 from config import settings
@@ -28,16 +29,15 @@ def clean_stock_data(raw_data: Dict[str, Any],stock_code: str) -> Dict[str, Any]
         }
 
         # 判断市场是否处于交易状态
-        is_market_open = cleaned_data['market_status'] != "已收盘"
+        is_market_open = cleaned_data['market_status'] == "已收盘"
         cleaned_data['is_market_open'] = is_market_open
-        
         send_market_status(stock_code=stock_code, is_market_open=is_market_open)
         
         return cleaned_data
     except Exception as e:
         logger.error(f"Error cleaning stock data: {e}")
         return {}
-
+    
 def send_market_status(stock_code: str, is_market_open: bool):
     """将市场状态发送回请求微服务"""
     try:

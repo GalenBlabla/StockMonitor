@@ -61,7 +61,6 @@ async def periodic_stock_fetch(subscribed_stocks):
                 # 检查市场是否开放
                 logger.info(f"检查市场开放信息{market_status.get(stock_code)}")
                 if market_status.get(stock_code, True):
-                    
                     data = await fetch_stock_data(stock_code)
                     if data:
                         send_to_processor(stock_code, data)

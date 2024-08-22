@@ -2,7 +2,7 @@ import json
 import pika
 import logging
 from config import settings
-
+logging.getLogger('pika').setLevel(logging.WARNING)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -11,15 +11,15 @@ def send_notification(stock_code, data):
     connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
     channel = connection.channel()
 
-    channel.queue_declare(queue='notifications')
+    channel.queue_declare(queue='noti_data')
 
     message = json.dumps({
         'stock_code': stock_code,
-        'message': f'Stock {stock_code} has significant updates: {data}'
+        'data': data
     })
 
     channel.basic_publish(exchange='',
-                          routing_key='notifications',
+                          routing_key='noti_data',
                           body=message)
 
     logger.info(f"Notification sent for {stock_code}")
@@ -38,8 +38,8 @@ def start_rabbitmq_listener():
     connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
     channel = connection.channel()
 
-    channel.queue_declare(queue='stock_data')
-    channel.basic_consume(queue='stock_data', on_message_callback=callback, auto_ack=True)
+    channel.queue_declare(queue='notifications')
+    channel.basic_consume(queue='notifications', on_message_callback=callback, auto_ack=True)
 
     logger.info("Connected to RabbitMQ, waiting for stock data...")
     
