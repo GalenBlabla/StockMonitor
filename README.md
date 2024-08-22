@@ -63,7 +63,7 @@ cd StockMonitor
 cd docker
 docker-compose up -d --build
 ```
-### 4. 访问服务
+### 3. 访问服务
 服务启动后，可以通过以下方式访问各微服务：
 
 - 用户管理服务：http://localhost:8000
