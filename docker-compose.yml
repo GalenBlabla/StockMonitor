@@ -31,7 +31,7 @@ services:
 
   user_management:
     build:
-      context: ../user_management  # 指向 user_management 文件夹
+      context: ./user_management  # 指向 user_management 文件夹
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
@@ -50,7 +50,7 @@ services:
 
   stock_fetcher:
     build:
-      context: ../stock_fetcher  # 指向 stock_fetcher 文件夹
+      context: ./stock_fetcher  # 指向 stock_fetcher 文件夹
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
@@ -63,7 +63,7 @@ services:
 
   stock_processor:
     build:
-      context: ../stock_processor  # 指向 stock_processor 文件夹
+      context: ./stock_processor  # 指向 stock_processor 文件夹
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
@@ -76,7 +76,7 @@ services:
 
   notification:
     build:
-      context: ../notification  # 指向 notification 文件夹
+      context: ./notification  # 指向 notification 文件夹
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
