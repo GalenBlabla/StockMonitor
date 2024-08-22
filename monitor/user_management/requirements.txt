@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+tortoise-orm
+redis
+cryptography
+pydantic_settings
+pika
+aiomysql
+
+rich

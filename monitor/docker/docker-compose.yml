@@ -1,0 +1,88 @@
+
+
+services:
+  db:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234 # MySQL root 用户密码
+      MYSQL_DATABASE: stock_monitoring # 要创建的数据库名称
+      MYSQL_USER: user # 普通用户
+      MYSQL_PASSWORD: 1234 # 普通用户的密码
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: "rabbitmq:management"
+    ports:
+      - "5672:5672" # AMQP 协议的默认端口
+      - "15672:15672" # RabbitMQ 管理控制台的默认端口
+    environment:
+      RABBITMQ_DEFAULT_USER: guest # 默认用户名
+      RABBITMQ_DEFAULT_PASS: guest # 默认密码
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  user_management:
+    build:
+      context: ../user_management  # 指向 user_management 文件夹
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - API_STOCK_INFO=${API_STOCK_INFO}
+      - HEADERS=${HEADERS}
+      - CACHE_EXPIRATION= ${CACHE_EXPIRATION}
+
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    ports:
+      - "8000:8000"
+
+  stock_fetcher:
+    build:
+      context: ../stock_fetcher  # 指向 stock_fetcher 文件夹
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  stock_processor:
+    build:
+      context: ../stock_processor  # 指向 stock_processor 文件夹
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+  notification:
+    build:
+      context: ../notification  # 指向 notification 文件夹
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - RABBITMQ_URL=${RABBITMQ_URL}
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+
+volumes:
+  mysql_data:
+  rabbitmq_data:

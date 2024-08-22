@@ -1,0 +1,6 @@
+
+
+
+redis
+pika
+pydantic_settings

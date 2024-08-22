@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+fastapi
+prometheus_client
+grafana_api

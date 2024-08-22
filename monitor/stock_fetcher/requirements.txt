@@ -1,0 +1,4 @@
+httpx
+pika
+redis
+pydantic_settings

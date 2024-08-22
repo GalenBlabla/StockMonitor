@@ -1,0 +1,55 @@
+# Python相关
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env.local
+
+# 日志文件
+logs/
+*.log
+cache/
+# 虚拟环境
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# MySQL数据文件
+mysql_data/
+
+# Redis数据文件
+*.rdb
+dump.rdb
+*.aof
+
+# Docker相关
+docker-compose.override.yml
+*.log
+.docker/
+docker-sync/
+
+# IDE相关
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# 单元测试相关
+coverage/
+.tox/
+.nox/
+.pytest_cache/
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# macOS
+.DS_Store
+
+# 其他系统文件
+Thumbs.db
