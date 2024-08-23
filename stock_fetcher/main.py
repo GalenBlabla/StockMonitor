@@ -1,7 +1,8 @@
 import asyncio
 import logging
 from config import settings
-from app.services.stock_service import check_market_status, periodic_stock_fetch, start_rabbitmq_listener
+from app.services.stock_service import check_market_status, periodic_stock_fetch
+from app.services.rabbitmq_service import start_rabbitmq_listener
 
 # 设置 pika 的日志级别为 WARNING 或更高，以隐藏调试和信息日志
 logging.getLogger('pika').setLevel(logging.WARNING)
@@ -18,6 +19,7 @@ async def main():
     
     # 启动定时器获取股票数据
     await periodic_stock_fetch(subscribed_stocks)
+    
     # 启动市场状态检查任务
     loop.run_until_complete(check_market_status(subscribed_stocks))
 

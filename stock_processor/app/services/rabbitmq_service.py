@@ -1,13 +1,20 @@
-import json
 import pika
+import json
 import logging
 from config import settings
-from .processing_pipeline import process_stock_data
+from app.factories.processor_factory import ProcessorFactory
 
 logger = logging.getLogger(__name__)
 
 def start_rabbitmq_listener():
-    """启动RabbitMQ监听，接收股票数据"""
+    processor = ProcessorFactory.create_processor()
+
+    def callback(ch, method, properties, body):
+        message = json.loads(body)
+        stock_code = message['stock_code']
+        raw_data = message['data']
+        processor.process(stock_code, raw_data)
+
     connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
     channel = connection.channel()
     channel.queue_declare(queue='stock_data')
@@ -15,10 +22,3 @@ def start_rabbitmq_listener():
 
     logger.info("已连接到RabbitMQ，等待股票数据...")
     channel.start_consuming()
-
-def callback(ch, method, properties, body):
-    """从RabbitMQ接收股票数据并处理"""
-    message = json.loads(body)
-    stock_code = message['stock_code']
-    data = message['data']
-    process_stock_data(stock_code, data)

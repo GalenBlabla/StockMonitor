@@ -1,3 +1,5 @@
+# app/main.py
+
 import logging
 from app.services.rabbitmq_service import start_rabbitmq_listener
 from config import settings
