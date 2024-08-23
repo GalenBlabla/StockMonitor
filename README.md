@@ -80,7 +80,7 @@ docker-compose up -d --build
 - `docker`: Docker 和 Docker Compose 配置文件
 - `logs`: 日志目录
 ### 快速上手
-- *添加新策略*: 要添加一个新的策略，只需在 `strategies/` 文件夹中创建一个新的策略类，继承自 `Strategy` 接口，并实现 `analyze` 方法。然后程序会自动注册策略在`processor_factory.py` 中的 `create_processor`方法内，将新的策略类添加到策略组合器中。
+- **添加新策略**: 要添加一个新的策略，只需在 `strategies/` 文件夹中创建一个新的策略类,文件命名以`_strategy`结尾，类命名以`Strategy`结尾，继承自 `Strategy` 接口，并实现 `analyze` 方法。然后程序会自动注册策略在`processor_factory.py` 中的 `create_processor`方法内，将新的策略类添加到策略组合器中。
 ### 贡献指南
 欢迎贡献代码！请确保所有更改都符合项目的代码风格，并且在提交之前通过了所有测试。
 
