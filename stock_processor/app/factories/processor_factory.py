@@ -10,6 +10,4 @@ class ProcessorFactory:
         strategy_instances = [strategy() for strategy in strategies]
         combiner = StrategyCombiner(strategy_instances)
         cleaner = DefaultDataCleaner()
-        notifier = RabbitMQNotifier()
-
-        return StockProcessor(cleaner, combiner, notifier)
+        return StockProcessor(cleaner, combiner)
