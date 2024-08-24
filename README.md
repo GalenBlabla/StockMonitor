@@ -77,7 +77,6 @@ docker-compose up -d --build
 - `stock_processor`: 股票数据处理服务
 - `notification`: 通知服务
 - `admin_monitoring`: 管理监控服务
-- `docker`: Docker 和 Docker Compose 配置文件
 - `logs`: 日志目录
 ### 快速上手
 - **添加新策略**: 要添加一个新的策略，只需在 `strategies/` 文件夹中创建一个新的策略类,文件命名以`_strategy`结尾，类命名以`Strategy`结尾，继承自 `Strategy` 接口，并实现 `analyze` 方法。然后程序会自动注册策略在`processor_factory.py` 中的 `create_processor`方法内，将新的策略类添加到策略组合器中。
