@@ -2,17 +2,22 @@ import httpx
 import json
 import logging
 import asyncio
-from datetime import datetime, time
-
+from datetime import datetime
 import pika
 from config import settings
+from app.services.calendar_service import TradeCalendar
 
 logger = logging.getLogger(__name__)
 
 market_status = {}
+calendar_service = TradeCalendar()
 
 async def fetch_stock_data(stock_code: str):
     """从API获取股票数据"""
+    if not await calendar_service.is_trading_day_and_time():
+        logger.info(f"{stock_code}: 当前非交易时段或非交易日，跳过数据获取。")
+        return None
+
     try:
         params = {
             "code": stock_code,
@@ -65,18 +70,3 @@ async def periodic_stock_fetch(subscribed_stocks):
         else:
             logger.info("没有订阅的股票，无需获取数据。")
         await asyncio.sleep(3)
-
-async def check_market_status(subscribed_stocks):
-    """每天早上9:15到9:16之间定期检查市场状态，并通知清洗服务"""
-    while True:
-        current_time = datetime.now().time()
-        weekday = datetime.now().weekday()
-        # 检查是否在周一到周五的9:15到9:17之间
-        if weekday < 5 and time(9, 15) <= current_time <= time(9, 17):
-            logger.info("正在检查市场状态...")
-            for stock_code in subscribed_stocks:
-                data = await fetch_stock_data(stock_code)
-                if data:
-                    send_to_processor(stock_code, data)
-
-        await asyncio.sleep(20)  # 每20秒检查一次
