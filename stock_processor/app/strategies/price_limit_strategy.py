@@ -1,12 +1,12 @@
-from app.core.interfaces import Strategy
+from core.interfaces import Strategy
 from typing import Dict, Any
 import logging
-from app.core.events import AnalysisEvent
+from core.events import AnalysisEvent
 
 logger = logging.getLogger(__name__)
 
 class PriceLimitStrategy(Strategy):
-    def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
+    async def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
         origin_pankou = cleaned_data.get('origin_pankou', {})
         
         if not origin_pankou:

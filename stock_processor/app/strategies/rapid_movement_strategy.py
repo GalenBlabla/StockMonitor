@@ -1,12 +1,12 @@
-from app.core.interfaces import Strategy
-from app.core.events import AnalysisEvent
+from core.interfaces import Strategy
+from core.events import AnalysisEvent
 from typing import Dict, Any
 import logging
 
 logger = logging.getLogger(__name__)
 
 class RapidMovementStrategy(Strategy):
-    def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
+    async def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
         price_info = cleaned_data.get('price_info', [])
         if len(price_info) >= 5:
             recent_prices = [float(info["price"]) for info in price_info[-5:]]

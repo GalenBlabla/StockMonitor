@@ -87,6 +87,14 @@ services:
       - redis
       - rabbitmq
 
+  monitor:
+    build:
+      context: ./monitor  # 指向 monitor 文件夹
+    environment:
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      - redis
 volumes:
   mysql_data:
   rabbitmq_data:

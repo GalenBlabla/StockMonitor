@@ -1,31 +1,65 @@
-import pika
 import json
 import logging
+import asyncio
+import time
+from aio_pika import connect_robust, Message, IncomingMessage
 from config import settings
-from app.factories.processor_factory import ProcessorFactory
-from app.services.notification_service import RabbitMQNotifier
+from factories.processor_factory import ProcessorFactory
+from services.notification_service import RabbitMQNotifier
 
 logger = logging.getLogger(__name__)
 
-def start_rabbitmq_listener():
+async def start_rabbitmq_listener():
     processor = ProcessorFactory.create_processor()
     notifier = RabbitMQNotifier()
 
-    def callback(ch, method, properties, body):
-        message = json.loads(body)
-        stock_code = message['stock_code']
-        raw_data = message['data']
+    async def callback(message: IncomingMessage):
+        async with message.process():
+            data = json.loads(message.body.decode())
+            stock_code = data['stock_code']
+            raw_data = data['data']
 
-        # 使用 processor 进行数据处理
-        events = processor.process(stock_code, raw_data)
+            # 使用 processor 进行数据处理
+            events = await processor.process(stock_code, raw_data)
 
-        # 将处理后的事件传递给通知服务
-        notifier.notify(stock_code, events)
+            # 将处理后的事件传递给通知服务
+            await notifier.notify(stock_code, events)
 
-    connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
-    channel = connection.channel()
-    channel.queue_declare(queue='stock_data')
-    channel.basic_consume(queue='stock_data', on_message_callback=callback, auto_ack=True)
+    connection = await connect_robust(settings.RABBITMQ_URL)
+    channel = await connection.channel()
+
+    # 声明队列
+    queue = await channel.declare_queue('stock_data', durable=False)
+    
+    # 消费队列
+    await queue.consume(callback)
 
     logger.info("已连接到RabbitMQ，等待股票数据...")
-    channel.start_consuming()
+    await asyncio.Future()  # 保持运行，监听消息
+
+async def report_service_status():
+    """定期上报服务状态到 stock_processor_status 队列"""
+    while True:
+        try:
+            connection = await connect_robust(settings.RABBITMQ_URL)
+            channel = await connection.channel()
+
+            status_message = {
+                'service': 'stock_processor',
+                'status': 'online',
+                'timestamp': time.time()
+            }
+
+            await channel.declare_queue('stock_processor_status', durable=False)
+            await channel.default_exchange.publish(
+                Message(body=json.dumps(status_message).encode()),
+                routing_key='stock_processor_status'
+            )
+
+            logger.info("Stock Processor 服务状态已上报为在线。")
+            await connection.close()
+
+        except Exception as e:
+            logger.error(f"上报服务状态时发生错误: {e}")
+
+        await asyncio.sleep(30)  # 每30秒上报一次

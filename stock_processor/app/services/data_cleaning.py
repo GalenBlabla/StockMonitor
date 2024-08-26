@@ -1,4 +1,4 @@
-from app.core.interfaces import DataCleaner
+from core.interfaces import DataCleaner
 from typing import Dict, Any
 import logging
 

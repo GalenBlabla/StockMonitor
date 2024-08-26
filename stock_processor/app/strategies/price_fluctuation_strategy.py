@@ -1,12 +1,12 @@
-from app.core.interfaces import Strategy
+from core.interfaces import Strategy
 from typing import Dict, Any
 import logging
-from app.core.events import AnalysisEvent
+from core.events import AnalysisEvent
 
 logger = logging.getLogger(__name__)
 
 class PriceFluctuationStrategy(Strategy):
-    def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
+    async def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
         if cleaned_data.get('market_status') == "交易中":
             fluctuation = self.detect_price_fluctuation(cleaned_data)
             if fluctuation and abs(fluctuation) > 1.0:

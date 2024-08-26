@@ -6,5 +6,6 @@ cryptography
 pydantic_settings
 pika
 aiomysql
-
+aio_pika
 rich
+passlib

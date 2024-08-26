@@ -1,7 +1,7 @@
 import os
 import importlib
 import inspect
-from app.core.interfaces import Strategy
+from core.interfaces import Strategy
 
 # 动态导入策略模块
 strategy_modules = []
@@ -9,7 +9,7 @@ strategy_dir = os.path.dirname(__file__)
 
 for file in os.listdir(strategy_dir):
     if file.endswith("_strategy.py") and file != "__init__.py":
-        module_name = f"app.strategies.{file[:-3]}"
+        module_name = f"strategies.{file[:-3]}"
         module = importlib.import_module(module_name)
         strategy_modules.append(module)
 

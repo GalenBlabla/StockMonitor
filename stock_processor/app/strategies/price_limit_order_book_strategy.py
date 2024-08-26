@@ -1,5 +1,5 @@
-from app.core.interfaces import Strategy
-from app.core.events import AnalysisEvent
+from core.interfaces import Strategy
+from core.events import AnalysisEvent
 from typing import Dict, Any
 import logging
 
@@ -10,7 +10,7 @@ class PriceLimitAndOrderBookStrategy(Strategy):
         self.initial_bid_volume = None  # 初始的买单封单量
         self.initial_ask_volume = None  # 初始的卖单封单量
 
-    def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
+    async def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> AnalysisEvent:
         buy_info = cleaned_data.get('buy_infos', [])
         ask_info = cleaned_data.get('ask_infos', [])
         origin_pankou = cleaned_data.get('origin_pankou', {})

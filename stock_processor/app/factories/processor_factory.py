@@ -1,8 +1,8 @@
-from app.processors.stock_processor import StockProcessor
-from app.processors.strategy_combiner import StrategyCombiner
-from app.strategies import strategies  # 从 strategies 动态导入的策略类列表
-from app.services.data_cleaning import DefaultDataCleaner
-from app.services.notification_service import RabbitMQNotifier
+from processors.stock_processor import StockProcessor
+from processors.strategy_combiner import StrategyCombiner
+from strategies import strategies  # 从 strategies 动态导入的策略类列表
+from services.data_cleaning import DefaultDataCleaner
+
 
 class ProcessorFactory:
     @staticmethod

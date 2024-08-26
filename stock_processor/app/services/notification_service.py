@@ -1,25 +1,28 @@
-from app.core.interfaces import Notifier
-from app.core.events import AnalysisEvent
+from core.interfaces import Notifier
+from core.events import AnalysisEvent
 from typing import List
-import pika
 import json
 import logging
+from aio_pika import connect_robust, Message
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 class RabbitMQNotifier(Notifier):
-    def notify(self, stock_code: str, events: List[AnalysisEvent]):
+    async def notify(self, stock_code: str, events: List[AnalysisEvent]):
+        connection = await connect_robust(settings.RABBITMQ_URL)
+        channel = await connection.channel()
+
+        # 声明队列
+        await channel.declare_queue('notifications', durable=False)
+
         try:
-            connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
-            channel = connection.channel()
-            channel.queue_declare(queue='notifications')
-            
             for event in events:
                 message = json.dumps(event.to_dict())
-                channel.basic_publish(exchange='',
-                                      routing_key='notifications',
-                                      body=message)
+                await channel.default_exchange.publish(
+                    Message(body=message.encode()),
+                    routing_key='notifications'
+                )
                 logger.info(f"Notification sent for {stock_code}: {event.event_type}")
         finally:
-            connection.close()
+            await connection.close()

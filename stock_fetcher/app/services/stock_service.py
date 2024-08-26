@@ -2,14 +2,12 @@ import httpx
 import json
 import logging
 import asyncio
-from datetime import datetime
-import pika
 from config import settings
-from app.services.calendar_service import TradeCalendar
+from services.calendar_service import TradeCalendar
+from aio_pika import connect_robust, Message
 
 logger = logging.getLogger(__name__)
 
-market_status = {}
 calendar_service = TradeCalendar()
 
 async def fetch_stock_data(stock_code: str):
@@ -32,32 +30,32 @@ async def fetch_stock_data(stock_code: str):
         async with httpx.AsyncClient() as client:
             response = await client.get(settings.API_STOCK_INFO, headers=settings.HEADERS, params=params)
             response.raise_for_status()
-            logger.info(response.url)
             return response.json()
     except httpx.RequestError as e:
         logger.error(f"获取股票 {stock_code} 数据时出错: {e}")
         return None
 
-def send_to_processor(stock_code: str, data: dict):
+async def send_to_processor(stock_code: str, data: dict):
     """将股票数据发送到 Stock Processor 服务"""
     try:
-        connection = pika.BlockingConnection(pika.URLParameters(settings.RABBITMQ_URL))
-        channel = connection.channel()
-        channel.queue_declare(queue='stock_data')
+        connection = await connect_robust(settings.RABBITMQ_URL)
+        channel = await connection.channel()
+        await channel.declare_queue('stock_data', durable=False)
 
-        message = json.dumps({
+        message = {
             'stock_code': stock_code,
             'data': data
-        })
+        }
 
-        channel.basic_publish(exchange='',
-                              routing_key='stock_data',
-                              body=message)
+        await channel.default_exchange.publish(
+            Message(body=json.dumps(message).encode()),
+            routing_key='stock_data'
+        )
         logger.info(f"已将 {stock_code} 的数据发送到 Stock Processor 服务")
     except Exception as e:
         logger.error(f"发送数据到处理服务失败: {e}")
     finally:
-        connection.close()
+        await connection.close()
 
 async def periodic_stock_fetch(subscribed_stocks):
     """每3秒获取一次所有订阅股票的最新数据"""
@@ -66,7 +64,7 @@ async def periodic_stock_fetch(subscribed_stocks):
             for stock_code in subscribed_stocks:
                 data = await fetch_stock_data(stock_code)
                 if data:
-                    send_to_processor(stock_code, data)
+                    await send_to_processor(stock_code, data)
         else:
             logger.info("没有订阅的股票，无需获取数据。")
         await asyncio.sleep(3)

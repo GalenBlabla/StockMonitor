@@ -3,3 +3,4 @@ pika
 redis
 pydantic_settings
 pandas
+aio_pika
