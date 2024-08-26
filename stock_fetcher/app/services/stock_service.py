@@ -56,15 +56,19 @@ async def send_to_processor(stock_code: str, data: dict):
         logger.error(f"发送数据到处理服务失败: {e}")
     finally:
         await connection.close()
+        
+async def fetch_and_process_stock(stock_code):
+    """获取和处理单个股票的数据"""
+    data = await fetch_stock_data(stock_code)
+    if data:
+        await send_to_processor(stock_code, data)
 
 async def periodic_stock_fetch(subscribed_stocks):
-    """每3秒获取一次所有订阅股票的最新数据"""
+    """每3秒获取一次所有订阅股票的最新数据，并发处理每个股票的获取请求"""
     while True:
         if subscribed_stocks:
-            for stock_code in subscribed_stocks:
-                data = await fetch_stock_data(stock_code)
-                if data:
-                    await send_to_processor(stock_code, data)
+            tasks = [fetch_and_process_stock(stock_code) for stock_code in subscribed_stocks]
+            await asyncio.gather(*tasks)  # 并发执行所有股票的数据获取和处理
         else:
             logger.info("没有订阅的股票，无需获取数据。")
         await asyncio.sleep(3)
