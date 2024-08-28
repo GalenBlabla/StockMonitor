@@ -1,7 +1,7 @@
 import json
 import asyncio
 import logging
-from aio_pika import connect_robust, IncomingMessage, ExchangeType
+from aio_pika import connect_robust, IncomingMessage
 from config import settings
 
 logging.getLogger('aio_pika').setLevel(logging.WARNING)
@@ -22,7 +22,6 @@ class MonitorService:
         await self.channel.declare_queue('user_management_status', durable=False)
         await self.channel.declare_queue('stock_fetcher_status', durable=False)
         await self.channel.declare_queue('stock_processor_status', durable=False)
-        await self.channel.declare_queue('notification_status', durable=False)
 
         # 注册不同的回调函数来处理各个服务的数据
         await self.channel.set_qos(prefetch_count=1)
@@ -30,12 +29,10 @@ class MonitorService:
         user_management_queue = await self.channel.get_queue('user_management_status')
         stock_fetcher_queue = await self.channel.get_queue('stock_fetcher_status')
         stock_processor_queue = await self.channel.get_queue('stock_processor_status')
-        notification_queue = await self.channel.get_queue('notification_status')
 
         await user_management_queue.consume(self.user_management_callback)
         await stock_fetcher_queue.consume(self.stock_fetcher_callback)
         await stock_processor_queue.consume(self.stock_processor_callback)
-        await notification_queue.consume(self.notification_callback)
         logger.info("MonitorService 已连接到 RabbitMQ，开始监听各服务状态...")
         await asyncio.Future()  # 阻止函数退出，保持监听状态
 
@@ -58,13 +55,6 @@ class MonitorService:
         async with message.process():
             data = json.loads(message.body.decode())
             logger.info(f"接收到 Stock Processor 服务的数据: {data}")
-            # 在这里处理数据并存储或进一步操作
-
-    async def notification_callback(self, message: IncomingMessage):
-        """处理 Notification 服务的上报数据"""
-        async with message.process():
-            data = json.loads(message.body.decode())
-            logger.info(f"接收到 Notification 服务的数据: {data}")
             # 在这里处理数据并存储或进一步操作
 
     async def stop(self):

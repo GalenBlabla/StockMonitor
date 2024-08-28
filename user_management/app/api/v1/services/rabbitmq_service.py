@@ -2,7 +2,8 @@ import time
 import json
 import asyncio
 import logging
-from aio_pika import connect_robust, Message, ExchangeType
+from aio_pika import connect_robust, Message
+from .notification_service import handle_notification
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -13,7 +14,7 @@ async def send_subscription_update(stock_code, action):
         connection = await connect_robust(settings.RABBITMQ_URL)
         channel = await connection.channel()
 
-        await channel.declare_queue('subscription_updates')
+        await channel.declare_queue('subscription_updates',durable=True)
 
         message = {
             'stock_code': stock_code,
@@ -35,10 +36,11 @@ async def callback(message):
     """异步处理从 RabbitMQ 接收到的通知消息。"""
     async with message.process():
         body = message.body.decode()
-        logger.info(f"接收到通知消息: {body}")
         data = json.loads(body)
-        # 这里处理接收到的通知消息
-        # 例如: notifications.append(data)
+        stock_code = data.get('stock_code')
+        event_type = data.get('event_type')
+        event_data = data.get('data')
+        await handle_notification(event_type, stock_code, event_data)
 
 async def start_rabbitmq_listener():
     """启动 RabbitMQ 监听，异步接收通知消息。"""
@@ -46,7 +48,7 @@ async def start_rabbitmq_listener():
         connection = await connect_robust(settings.RABBITMQ_URL)
         channel = await connection.channel()
 
-        queue = await channel.declare_queue('noti_data')
+        queue = await channel.declare_queue('notifications')
         await queue.consume(callback)
 
         logger.info("已连接到 RabbitMQ，等待通知消息...")

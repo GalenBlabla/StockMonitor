@@ -23,6 +23,6 @@ class RabbitMQNotifier(Notifier):
                     Message(body=message.encode()),
                     routing_key='notifications'
                 )
-                logger.info(f"Notification sent for {stock_code}: {event.event_type}")
+                # logger.info(f"Notification sent for {stock_code}: {event.event_type}")
         finally:
             await connection.close()

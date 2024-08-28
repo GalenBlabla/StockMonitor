@@ -12,3 +12,11 @@ async def delete_subscription(user_id: int, stock_code: str):
     if deleted_count == 0:
         raise HTTPException(status_code=404, detail="Subscription not found")
     await send_subscription_update(stock_code, "unsubscribe")
+
+async def push_all_subscriptions_to_mq():
+    # 获取所有用户的订阅
+    subscriptions = await Subscriptions.all()
+    
+    for subscription in subscriptions:
+        # 将每个订阅推送到 RabbitMQ
+        await send_subscription_update(subscription.stock_code, "subscribe")

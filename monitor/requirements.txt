@@ -1,3 +1,5 @@
 
 pydantic_settings
 aio_pika
+
+tabulate

@@ -1,7 +1,0 @@
-
-
-
-redis
-pika
-pydantic_settings
-aio_pika

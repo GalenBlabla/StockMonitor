@@ -8,10 +8,10 @@ class DataCleaner(ABC):
 
 class Strategy(ABC):
     @abstractmethod
-    async def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze(self, stock_code: str, cleaned_data: Dict[str, Any]) -> Dict[str, Any]:
         pass
 
 class Notifier(ABC):
     @abstractmethod
-    async def notify(self, stock_code: str, analysis_result: Dict[str, Any]):
+    def notify(self, stock_code: str, analysis_result: Dict[str, Any]):
         pass

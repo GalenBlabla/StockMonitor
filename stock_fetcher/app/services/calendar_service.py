@@ -30,7 +30,6 @@ class TradeCalendar:
         
         # 尝试从缓存中读取数据
         if os.path.exists(cache_path):
-            logger.info(f"从缓存中读取交易日历数据: {cache_path}")
             return pd.read_csv(cache_path, header=0)
         
         # 从远程接口获取数据

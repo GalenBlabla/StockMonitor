@@ -18,7 +18,6 @@ class RapidMovementStrategy(Strategy):
                     stock_code=stock_code,
                     data={"fluctuation": fluctuation}
                 )
-
         return AnalysisEvent(
             event_type="normal",
             stock_code=stock_code,

@@ -56,7 +56,7 @@ async def report_service_status():
                 routing_key='stock_processor_status'
             )
 
-            logger.info("Stock Processor 服务状态已上报为在线。")
+
             await connection.close()
 
         except Exception as e:

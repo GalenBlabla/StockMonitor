@@ -3,9 +3,11 @@ from contextlib import asynccontextmanager
 import logging
 from fastapi import FastAPI
 from tortoise import Tortoise
+from app.api.v1.services.subscription_service import push_all_subscriptions_to_mq
+from app.api.v1.services.rabbitmq_service import start_rabbitmq_listener,report_service_status
+
 from app.config import settings
 from app.core.logger import setup_logging
-from app.api.v1.services.rabbitmq_service import start_rabbitmq_listener,report_service_status
 
 setup_logging()
 
@@ -21,7 +23,8 @@ async def lifespan(app: FastAPI):
     # 启动RabbitMQ监听器和状态上报任务
     rabbitmq_listener_task = asyncio.create_task(start_rabbitmq_listener())
     status_report_task = asyncio.create_task(report_service_status())
-
+    # 推送所有用户订阅的股票到 MQ
+    await push_all_subscriptions_to_mq()
     yield
 
     # 关闭逻辑：关闭数据库连接和取消异步任务

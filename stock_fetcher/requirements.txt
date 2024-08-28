@@ -4,3 +4,4 @@ redis
 pydantic_settings
 pandas
 aio_pika
+fake_useragent

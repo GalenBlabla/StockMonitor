@@ -38,7 +38,7 @@ async def start_rabbitmq_listener(subscribed_stocks):
     channel = await connection.channel()
 
     # 订阅更新的队列
-    subscription_queue = await channel.declare_queue('subscription_updates', durable=False)
+    subscription_queue = await channel.declare_queue('subscription_updates', durable=True)
     await subscription_queue.consume(lambda message: asyncio.create_task(subscription_callback(message, subscribed_stocks)))
 
     # 市场状态更新的队列
