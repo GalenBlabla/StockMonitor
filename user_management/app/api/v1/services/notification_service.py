@@ -1,31 +1,34 @@
-import logging
+# app/api/v1/services/notification_service.py
 
-# 配置日志记录器
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
+from app.core.event_bus import event_handler
+from app.core.events import NotificationEvent
+from app.api.v1.services import notification_service
+import logging
 
 logger = logging.getLogger(__name__)
 
-async def handle_notification(event_type, stock_code, event_data):
-    """根据事件类型处理通知"""
-    
-    if event_type == 'normal':
-        # logger.info(f"普通通知: {stock_code} 数据: {event_data}")
-        # 在这里实现普通通知的处理逻辑
-        pass
+@event_handler("limit_up")
+async def handle_limit_up(event: NotificationEvent):
+    logger.info(f"处理涨停事件: {event.stock_code} 数据: {event.data}")
+    # 实现涨停事件的处理逻辑
 
-    elif event_type == 'limit_up':
-        logger.info(f"处理涨停事件: {stock_code} 数据: {event_data}")
-        # 在这里实现涨停事件的处理逻辑
+@event_handler("limit_down")
+async def handle_limit_down(event: NotificationEvent):
+    logger.info(f"处理跌停事件: {event.stock_code} 数据: {event.data}")
+    # 实现跌停事件的处理逻辑
 
-    elif event_type == 'price_fluctuation':
-        logger.info(f"价格波动事件: {stock_code} 数据: {event_data}")
-        # 在这里实现价格波动事件的处理逻辑
-    elif event_type == 'limit_down':
-        logger.info(f"处理跌停事件: {stock_code} 数据: {event_data}")
-    # 处理其他类型的事件
-    else:
-        logger.warning(f"未处理的事件类型: {event_type}")
+@event_handler("price_fluctuation")
+async def handle_price_fluctuation(event: NotificationEvent):
+    logger.info(f"价格波动事件: {event.stock_code} 数据: {event.data}")
+    # 实现价格波动事件的处理逻辑
+
+@event_handler("normal")
+async def handle_normal(event: NotificationEvent):
+    # logger.info(f"普通通知: {event.stock_code} 数据: {event.data}")
+    # 实现普通通知的处理逻辑
+    pass
+
+@event_handler("error")
+async def handle_error(event: NotificationEvent):
+    logger.error(f"处理错误事件: {event.stock_code} 数据: {event.data}")
+    # 实现错误处理逻辑

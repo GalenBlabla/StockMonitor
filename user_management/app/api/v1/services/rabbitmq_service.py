@@ -1,9 +1,12 @@
+# app/api/v1/services/rabbitmq_service.py
+
 import time
 import json
 import asyncio
 import logging
 from aio_pika import connect_robust, Message
-from .notification_service import handle_notification
+from app.core.event_bus import event_bus
+from app.core.events import NotificationEvent
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -40,7 +43,10 @@ async def callback(message):
         stock_code = data.get('stock_code')
         event_type = data.get('event_type')
         event_data = data.get('data')
-        await handle_notification(event_type, stock_code, event_data)
+
+        # 创建 NotificationEvent 对象并通过事件总线发布
+        event = NotificationEvent(event_type=event_type, stock_code=stock_code, data=event_data)
+        await event_bus.publish(event)
 
 async def start_rabbitmq_listener():
     """启动 RabbitMQ 监听，异步接收通知消息。"""
