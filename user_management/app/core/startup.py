@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from tortoise import Tortoise
 from app.api.v1.services.subscription_service import push_all_subscriptions_to_mq
 from app.api.v1.services.rabbitmq_service import start_rabbitmq_listener,report_service_status
-from app.api.v1.services import notification_service
+from app.notification_handle import notification_handle
 from app.config import settings
 from app.core.logger import setup_logging
 
