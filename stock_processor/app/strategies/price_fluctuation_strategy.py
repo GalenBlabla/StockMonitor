@@ -11,7 +11,7 @@ class PriceFluctuationStrategy(Strategy):
             fluctuation = self.detect_price_fluctuation(cleaned_data)
             if fluctuation and abs(fluctuation) > 1.0:
                 # logger.info(f"Significant price change detected for {stock_code}: {fluctuation}%")
-                return AnalysisEvent("PriceFluctuation", stock_code, {"fluctuation": fluctuation})
+                return AnalysisEvent("price_fluctuation", stock_code, {"fluctuation": fluctuation})
         return AnalysisEvent("normal", stock_code, {"fluctuation": 0})
 
     def detect_price_fluctuation(self, cleaned_data: Dict[str, Any]) -> float:

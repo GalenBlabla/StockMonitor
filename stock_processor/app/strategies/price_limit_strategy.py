@@ -65,7 +65,6 @@ class PriceLimitStrategy(Strategy):
             )
 
         except (KeyError, ValueError) as e:
-            logger.error(f"处理 {stock_code} 的数据时出错: {e}")
             return AnalysisEvent(
                 event_type="error", 
                 stock_code=stock_code,
