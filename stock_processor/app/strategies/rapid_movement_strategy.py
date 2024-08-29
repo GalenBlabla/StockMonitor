@@ -12,9 +12,8 @@ class RapidMovementStrategy(Strategy):
             recent_prices = [float(info["price"]) for info in price_info[-5:]]
             fluctuation = (recent_prices[-1] - recent_prices[0]) / recent_prices[0] * 100
             if abs(fluctuation) > 2.0:  # 根据需求调整这个阈值
-                logger.info(f"{stock_code} 近期价格波动显著: 过去5分钟内波动 {fluctuation}%")
                 return AnalysisEvent(
-                    event_type="rapid_movement",
+                    event_type="rapid_movement_5m",
                     stock_code=stock_code,
                     data={"fluctuation": fluctuation}
                 )

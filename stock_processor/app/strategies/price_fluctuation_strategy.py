@@ -10,7 +10,6 @@ class PriceFluctuationStrategy(Strategy):
         if cleaned_data.get('market_status') == "交易中":
             fluctuation = self.detect_price_fluctuation(cleaned_data)
             if fluctuation and abs(fluctuation) > 1.0:
-                # logger.info(f"Significant price change detected for {stock_code}: {fluctuation}%")
                 return AnalysisEvent("price_fluctuation", stock_code, {"fluctuation": fluctuation})
         return AnalysisEvent("normal", stock_code, {"fluctuation": 0})
 
