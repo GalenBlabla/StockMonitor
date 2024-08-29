@@ -48,6 +48,31 @@ async def callback(message):
         event = NotificationEvent(event_type=event_type, stock_code=stock_code, data=event_data)
         await event_bus.publish(event)
 
+async def send_processed_event(event: NotificationEvent):
+    """异步发送处理后的事件到 RabbitMQ。"""
+    try:
+        connection = await connect_robust(settings.RABBITMQ_URL)
+        channel = await connection.channel()
+
+        await channel.declare_queue('processed_notifications', durable=True)
+
+        message = {
+            'stock_code': event.stock_code,
+            'event_type': event.event_type,
+            'data': event.data
+        }
+
+        await channel.default_exchange.publish(
+            Message(body=json.dumps(message).encode()),
+            routing_key='processed_notifications'
+        )
+
+        logger.info(f"已发送处理后的事件: {event.stock_code} ({event.event_type})")
+        await connection.close()
+
+    except Exception as e:
+        logger.error(f"发送处理后的事件时发生错误: {e}")
+        
 async def start_rabbitmq_listener():
     """启动 RabbitMQ 监听，异步接收通知消息。"""
     try:
